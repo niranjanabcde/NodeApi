@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Users</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <h1>Live Users</h1>
+    <ul id="userList"></ul>
+
+    <script>
+        // Connect to Socket.io server
+        const socket = io();
+        // Function to append user to the user list
+        function appendUser(user) {
+            const userList = $('#userList');
+            const listItem = `<li>${user.firstName} ${user.lastName} - <a href="#" class="userLink" data-userid="${user.email}">${user.email}</a>  - Socket - ID: <span class="userId">${user._id}</span></li>`;
+            userList.append(listItem);
+        }
+        // Function to remove user from the user list
+        function removeUser(user) {
+            const userList = $('#userList');
+            const listItem = userList.find(`li:contains('${user.email}')`);
+            listItem.remove();
+        }
+        // Function to display user information in a custom popup
+        function showUserInfo(userId) {
+            $.ajax({
+                url: `/api/data/${userId}`,
+                method: 'GET',
+                success: function (user) {
+                    const userInfo = `User Information:
+Name: ${user.firstName} ${user.lastName}
+Email: ${user.email}
+Mobile No: ${user.mobileNo}
+Address:
+  Street: ${user.address.street}
+  City: ${user.address.city}
+  State: ${user.address.state}
+  Country: ${user.address.country}
+Login ID: ${user.loginId}
+Password: ${user.password}`;
+
+                    // Display the user information in a custom popup
+                    // You can use your own popup implementation here
+                    alert(userInfo);
+                },
+                error: function (error) {
+                    alert('Error: ' + error.responseJSON.error);
+                }
+            });
+        }
+        // Listen for "userJoined" event
+        socket.on('userJoined', function (user) {
+            appendUser(user);
+        });
+        // Listen for "userSocketId" event
+        socket.on('userSocketId', function (data) {
+            const { userId, socketId } = data;
+            const socketIdElement = $(`#${userId} .socketId`);
+            socketIdElement.text(socketId);
+        });
+        // Listen for "userDisconnected" event
+        socket.on('userDisconnected', function (user) {
+            removeUser(user);
+        });
+        // Retrieve data from API
+        $.ajax({
+            url: '/api/data',
+            method: 'GET',
+            success: function (response) {
+                const userList = $('#userList');
+                response.forEach(function (user) {
+                    appendUser(user);
+                });
+            },
+            error: function (error) {
+                alert('Error: ' + error.responseJSON.error);
+            }
+        });
+        // Event listener foruser link clicks
+        $(document).on('click', '.userLink', function (e) {
+            e.preventDefault();
+            const userId = $(this).data('userid');
+            showUserInfo(userId);
+        });
+    </script>
+</body>
+
+</html>

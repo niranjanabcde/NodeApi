@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>User Form</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <h1>User Form</h1>
+    <form id="userForm">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="firstName" required><br>
+
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="lastName" required><br>
+
+        <label for="mobileNo">Mobile No:</label>
+        <input type="text" id="mobileNo" name="mobileNo" pattern="[0-9]{10}" required><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+
+        <label for="street">Street:</label>
+        <input type="text" id="street" name="street"><br>
+
+        <label for="city">City:</label>
+        <input type="text" id="city" name="city"><br>
+
+        <label for="state">State:</label>
+        <input type="text" id="state" name="state"><br>
+
+        <label for="country">Country:</label>
+        <input type="text" id="country" name="country"><br>
+
+        <label for="loginId">Login ID:</label>
+        <input type="text" id="loginId" name="loginId" required><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required
+            pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{6,}$"><br>
+
+        <button type="submit" id="saveBtn">Save</button>
+    </form>
+
+    <script>
+        // Function to get the query parameter value by name
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Populate the form fields with query parameter values
+        $('#firstName').val(getQueryParam('firstName'));
+        $('#lastName').val(getQueryParam('lastName'));
+        $('#mobileNo').val(getQueryParam('mobileNo'));
+        $('#email').val(getQueryParam('email'));
+        $('#street').val(getQueryParam('street'));
+        $('#city').val(getQueryParam('city'));
+        $('#state').val(getQueryParam('state'));
+        $('#country').val(getQueryParam('country'));
+        $('#loginId').val(getQueryParam('loginId'));
+        $('#password').val(getQueryParam('password'));
+
+        // Connect to Socket.io server
+        const socket = io();
+
+        // Handle form submission
+        $('#userForm').submit(function (e) {
+            e.preventDefault();
+
+            // Get form data
+            const formData = {
+                firstName: $('#firstName').val(),
+                lastName: $('#lastName').val(),
+                mobileNo: $('#mobileNo').val(),
+                email: $('#email').val(),
+                address: {
+                    street: $('#street').val(),
+                    city: $('#city').val(),
+                    state: $('#state').val(),
+                    country: $('#country').val()
+                },
+                loginId: $('#loginId').val(),
+                password: $('#password').val()
+            };
+
+            // Send data to API
+            $.ajax({
+                url: '/api/data',
+                method: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    alert('Data saved successfully!');
+                    // Reset the form
+                    $('#userForm')[0].reset();
+                },
+                error: function (error) {
+                    alert('Error: ' + error.responseJSON.error);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
